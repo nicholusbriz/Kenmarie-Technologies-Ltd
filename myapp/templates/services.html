@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Services - Kenmarie Technologies Ltd{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/services.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="services-header">
+        <h1>Our Services</h1>
+        <p>Kenmarie Technologies Ltd delivers innovative, secure, and reliable digital solutions that help organizations grow.</p>
+    </section>
+
+    <section class="services-grid">
+        <div class="service-card">
+            <h3>What We Offer</h3>
+            <ul>
+                <li>Digital Transformation Solutions</li>
+                <li>Web Development & Online Presence</li>
+                <li>Cybersecurity Services</li>
+                <li>Business Process Optimization</li>
+                <li>Custom Software Development</li>
+                <li>IT Consulting & Support</li>
+            </ul>
+        </div>
+
+        <div class="service-card">
+            <h3>What We Solve</h3>
+            <ul>
+                <li>Outdated business processes</li>
+                <li>Weak online presence</li>
+                <li>Cybersecurity risks</li>
+                <li>Inefficient operations</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="customers-section">
+        <h2>Who We Serve</h2>
+        <p>Our ideal customers are businesses, NGOs, educational institutions, government agencies, churches, and growing startups. They are willing to invest in solutions that improve efficiency, strengthen security, increase visibility, and help them serve their clients more effectively.</p>
+        
+        <div class="customer-types">
+            <div class="customer-type">Businesses</div>
+            <div class="customer-type">NGOs</div>
+            <div class="customer-type">Educational Institutions</div>
+            <div class="customer-type">Government Agencies</div>
+            <div class="customer-type">Churches</div>
+            <div class="customer-type">Startups</div>
+        </div>
+    </section>
+</div>
+{% endblock %}
