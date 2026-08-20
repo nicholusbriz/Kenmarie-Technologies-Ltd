@@ -1,55 +1,55 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useUser } from '@/lib/hooks/useUser';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function ProjectsPage() {
   const { user } = useUser();
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const supabase = createClient();
+
+  // Fetch projects with TanStack Query
+  const { data: projects = [], isLoading: loading } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const response = await fetch('/api/projects');
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (!user) return;
 
-    const fetchProjects = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch('/api/projects');
-        const data = await response.json();
-        if (data) setProjects(data);
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProjects();
-
-    // Subscribe to project changes
+    // Subscribe to project changes and invalidate cache
     const channel = supabase
       .channel('projects-list')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'projects',
           filter: `user_id=eq.${user.id}`
         },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setProjects((prev) => [payload.new, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setProjects((prev) =>
-              prev.map((p) => (p.id === payload.new.id ? payload.new : p))
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setProjects((prev) => prev.filter((p) => p.id !== payload.old.id));
-          }
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'projects',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
         }
       )
       .subscribe();
@@ -57,7 +57,7 @@ export default function ProjectsPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, queryClient]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -84,8 +84,8 @@ export default function ProjectsPage() {
       if (!response.ok) {
         throw new Error('Failed to delete project');
       }
-      // Remove from local state
-      setProjects((prev) => prev.filter((p) => p.id !== id));
+      // Invalidate cache to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
     } catch (error) {
       console.error('Error deleting project:', error);
       alert('Error deleting project');
@@ -133,7 +133,7 @@ export default function ProjectsPage() {
                 </tr>
               </thead>
               <tbody>
-                {projects.map((project) => (
+                {projects.map((project: any) => (
                   <tr key={project.id} className="border-b border-border hover:bg-background-alt transition-colors">
                     <td className="p-3">
                       <Link

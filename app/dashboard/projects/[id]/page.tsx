@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useUser } from '@/lib/hooks/useUser';
+import Environment from './components/Environment';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 type TabType = 'deploy' | 'overview' | 'environment' | 'deployments' | 'logs' | 'settings';
 
@@ -22,36 +24,30 @@ export default function ProjectDetailPage() {
   const { id } = useParams();
   const { user } = useUser();
   const router = useRouter();
-  const [project, setProject] = useState<any>(null);
-  const [deployments, setDeployments] = useState<any[]>([]);
-  const [envVars, setEnvVars] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [deploying, setDeploying] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('deploy');
   const supabase = createClient();
 
+  // Fetch project data with TanStack Query
+  const { data: project, isLoading: loading } = useQuery({
+    queryKey: ['project', id],
+    queryFn: async () => {
+      const response = await fetch(`/api/projects/${id}`);
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!user && !!id,
+  });
+
+  // Extract deployments and env vars from project data
+  const deployments = project?.deployments || [];
+  const envVars = project?.environment_variables || [];
+
   useEffect(() => {
     if (!user || !id) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`/api/projects/${id}`);
-        const data = await response.json();
-        
-        setProject(data);
-        setDeployments(data.deployments || []);
-        setEnvVars(data.environment_variables || []);
-      } catch (error) {
-        console.error('Error fetching project:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-
-    // Subscribe to project updates
+    // Subscribe to project updates and invalidate cache
     const projectChannel = supabase
       .channel(`project-detail-${id}`)
       .on(
@@ -62,13 +58,13 @@ export default function ProjectDetailPage() {
           table: 'projects',
           filter: `id=eq.${id}`
         },
-        (payload) => {
-          setProject(payload.new);
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['project', id] });
         }
       )
       .subscribe();
 
-    // Subscribe to deployment updates
+    // Subscribe to deployment updates and invalidate cache
     const deploymentChannel = supabase
       .channel(`project-deployments-${id}`)
       .on(
@@ -79,14 +75,8 @@ export default function ProjectDetailPage() {
           table: 'deployments',
           filter: `project_id=eq.${id}`
         },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setDeployments((prev) => [payload.new, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setDeployments((prev) =>
-              prev.map((d) => (d.id === payload.new.id ? payload.new : d))
-            );
-          }
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['project', id] });
         }
       )
       .subscribe();
@@ -95,7 +85,7 @@ export default function ProjectDetailPage() {
       supabase.removeChannel(projectChannel);
       supabase.removeChannel(deploymentChannel);
     };
-  }, [id, user]);
+  }, [id, user, queryClient]);
 
   const handleDeploy = async () => {
     setDeploying(true);
@@ -105,6 +95,8 @@ export default function ProjectDetailPage() {
       });
       const data = await response.json();
       if (data.deploymentId) {
+        // Invalidate cache to trigger refetch after deployment
+        queryClient.invalidateQueries({ queryKey: ['project', id] });
         setDeploying(false);
       } else {
         alert('Failed to start deployment');
@@ -287,23 +279,9 @@ export default function ProjectDetailPage() {
           )}
 
           {activeTab === 'environment' && (
-            <div className="bg-background rounded-lg border border-border shadow-custom p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-semibold text-primary mb-4">Environment Variables</h2>
-              {envVars.length === 0 ? (
-                <p className="text-text-light text-sm sm:text-base">No environment variables configured yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {envVars.map((env) => (
-                    <div key={env.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 p-3 bg-background-alt rounded border border-border">
-                      <span className="font-mono text-sm break-all">{env.key}</span>
-                      <span className="font-mono text-sm text-text-light">
-                        {env.is_secret ? '••••••••' : env.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Environment 
+              projectId={id as string}
+            />
           )}
 
           {activeTab === 'logs' && (
@@ -313,7 +291,7 @@ export default function ProjectDetailPage() {
                 <p className="text-text-light text-sm sm:text-base">No deployments yet.</p>
               ) : (
                 <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {deployments.map((deployment) => (
+                  {deployments.map((deployment: any) => (
                     <div key={deployment.id} className="p-3 sm:p-4 bg-background-alt rounded border border-border">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className={`px-2 py-0.5 rounded text-xs ${getStatusColor(deployment.deployment_status)}`}>
@@ -362,7 +340,7 @@ export default function ProjectDetailPage() {
                 <p className="text-text-light text-sm sm:text-base">No deployments yet.</p>
               ) : (
                 <div className="space-y-3">
-                  {deployments.map((deployment) => (
+                  {deployments.map((deployment: any) => (
                     <div key={deployment.id} className="p-3 sm:p-4 bg-background-alt rounded border border-border">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className={`px-2 py-0.5 rounded text-xs ${getStatusColor(deployment.deployment_status)}`}>
