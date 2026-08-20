@@ -30,10 +30,16 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
+      // Use environment variable for redirect URL with fallback
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+      const redirectTo = `${baseUrl}/api/auth/callback`;
+      
+      console.log('Redirect URL:', redirectTo); // For debugging
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
+          redirectTo: redirectTo,
         },
       });
 
