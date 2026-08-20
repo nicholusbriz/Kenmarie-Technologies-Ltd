@@ -1,15 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface EnvironmentProps {
   projectId: string;
-  initialEnvVars: any[];
-  onEnvVarsChange: (envVars: any[]) => void;
 }
 
-export default function Environment({ projectId, initialEnvVars, onEnvVarsChange }: EnvironmentProps) {
-  const [envVars, setEnvVars] = useState(initialEnvVars);
+export default function Environment({ projectId }: EnvironmentProps) {
+  const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,9 +17,15 @@ export default function Environment({ projectId, initialEnvVars, onEnvVarsChange
     is_secret: true
   });
 
-  useEffect(() => {
-    setEnvVars(initialEnvVars);
-  }, [initialEnvVars]);
+  // Fetch environment variables with TanStack Query
+  const { data: envVars = [] } = useQuery({
+    queryKey: ['envVars', projectId],
+    queryFn: async () => {
+      const response = await fetch(`/api/env/${projectId}`);
+      const data = await response.json();
+      return data;
+    },
+  });
 
   const handleAddEnvVar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,13 +44,12 @@ export default function Environment({ projectId, initialEnvVars, onEnvVarsChange
       if (!response.ok) {
         const error = await response.json();
         alert('Error adding environment variable: ' + (error.error || 'Unknown error'));
+        setLoading(false);
         return;
       }
 
-      const newEnvVar = await response.json();
-      const updatedEnvVars = [...envVars, newEnvVar];
-      setEnvVars(updatedEnvVars);
-      onEnvVarsChange(updatedEnvVars);
+      // Invalidate cache to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ['envVars', projectId] });
       setShowAddForm(false);
       setFormData({ key: '', value: '', is_secret: true });
     } catch (error) {
@@ -61,18 +65,22 @@ export default function Environment({ projectId, initialEnvVars, onEnvVarsChange
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/env/${projectId}/${envVarId}`, {
+      const response = await fetch(`/api/env/${projectId}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ envId: envVarId }),
       });
 
       if (!response.ok) {
         alert('Error deleting environment variable');
+        setLoading(false);
         return;
       }
 
-      const updatedEnvVars = envVars.filter(env => env.id !== envVarId);
-      setEnvVars(updatedEnvVars);
-      onEnvVarsChange(updatedEnvVars);
+      // Invalidate cache to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ['envVars', projectId] });
     } catch (error) {
       console.error('Error deleting environment variable:', error);
       alert('Error deleting environment variable');
@@ -82,7 +90,7 @@ export default function Environment({ projectId, initialEnvVars, onEnvVarsChange
   };
 
   return (
-    <div className="bg-background-alt p-6 rounded-lg border border-border">
+    <div className="bg-background p-6 rounded-lg border border-border shadow-custom">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-primary">Environment Variables</h2>
         <button
@@ -153,7 +161,7 @@ export default function Environment({ projectId, initialEnvVars, onEnvVarsChange
         <p className="text-text-light text-sm">No environment variables configured</p>
       ) : (
         <div className="space-y-2">
-          {envVars.map((env) => (
+          {envVars.map((env: any) => (
             <div
               key={env.id}
               className="flex items-center justify-between p-3 bg-background rounded border border-border"
