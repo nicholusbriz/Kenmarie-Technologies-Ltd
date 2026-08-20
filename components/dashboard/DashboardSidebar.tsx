@@ -13,7 +13,9 @@ import {
   X,
   Menu,
   ChevronRight,
+  Shield,
 } from 'lucide-react';
+import { useUser } from '@/lib/hooks/useUser';
 
 const navLinks = [
   {
@@ -41,6 +43,13 @@ const navLinks = [
     section: 'deploy',
   },
   {
+    label: 'Admin',
+    href: '/dashboard/admin',
+    icon: Shield,
+    section: 'admin',
+    adminOnly: true,
+  },
+  {
     label: 'Profile',
     href: '/dashboard/profile',
     icon: User,
@@ -56,6 +65,7 @@ const navLinks = [
 
 export default function DashboardSidebar() {
   const pathname = usePathnameSafe();
+  const { isAdmin } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isActive = (href: string) => {
@@ -73,6 +83,10 @@ export default function DashboardSidebar() {
 
   const deployLinks = navLinks.filter(
     (link) => link.section === 'deploy'
+  );
+
+  const adminLinks = navLinks.filter(
+    (link) => link.section === 'admin' && isAdmin
   );
 
   const accountLinks = navLinks.filter(
@@ -241,6 +255,17 @@ export default function DashboardSidebar() {
             onNavigate={closeMobileMenu}
             className="mt-7"
           />
+
+          {/* ADMIN */}
+          {adminLinks.length > 0 && (
+            <NavSection
+              title="Admin"
+              links={adminLinks}
+              isActive={isActive}
+              onNavigate={closeMobileMenu}
+              className="mt-7"
+            />
+          )}
 
           {/* ACCOUNT */}
           <NavSection

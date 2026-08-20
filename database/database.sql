@@ -64,6 +64,7 @@ END $$;
 CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT,
+  email TEXT,
   github_username TEXT,
   avatar_url TEXT,
   role_id UUID REFERENCES public.roles(id) ON DELETE SET NULL,
@@ -354,15 +355,17 @@ USING (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.users (id, full_name, avatar_url, role_id)
+  INSERT INTO public.users (id, email, full_name, avatar_url, role_id)
   VALUES (
-    NEW.id, 
+    NEW.id,
+    NEW.email,
     NEW.raw_user_meta_data->>'full_name',
     NEW.raw_user_meta_data->>'avatar_url',
     (SELECT id FROM public.roles WHERE name = 'user' LIMIT 1) -- Default role for new users
   )
-  ON CONFLICT (id) DO UPDATE 
-  SET 
+  ON CONFLICT (id) DO UPDATE
+  SET
+    email = EXCLUDED.email,
     full_name = EXCLUDED.full_name,
     avatar_url = EXCLUDED.avatar_url,
     updated_at = timezone('utc'::text, now());
