@@ -23,8 +23,8 @@ export default function Header() {
   const pathname = usePathname();
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [servicesOpen, setServicesOpen] = useState(false);
-  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(true); // Changed to true
+  const [mobileServicesOpen, setMobileServicesOpen] = useState(true); // Changed to true
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
