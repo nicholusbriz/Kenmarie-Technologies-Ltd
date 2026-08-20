@@ -133,7 +133,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-primary-light bg-primary">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-primary/95 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* =====================================
@@ -191,19 +191,19 @@ export default function Header() {
                   href={href}
                   className={`
                     relative
-                    rounded-md
+                    rounded-lg
                     px-5
                     py-2.5
                     text-sm
                     font-medium
                     text-white
                     transition-all
-                    duration-200
+                    duration-300
 
                     ${
                       active
-                        ? 'bg-primary-light'
-                        : 'hover:bg-primary-light'
+                        ? 'bg-white/10'
+                        : 'hover:bg-white/10'
                     }
                   `}
                   aria-current={active ? 'page' : undefined}
@@ -221,7 +221,7 @@ export default function Header() {
                         right-5
                         h-0.5
                         rounded-full
-                        bg-secondary
+                        bg-gradient-to-r from-secondary to-accent
                       "
                     />
                   )}
@@ -248,19 +248,19 @@ export default function Header() {
                   cursor-pointer
                   items-center
                   gap-1
-                  rounded-md
+                  rounded-lg
                   px-5
                   py-2.5
                   text-sm
                   font-medium
                   text-white
                   transition-all
-                  duration-200
+                  duration-300
 
                   ${
                     isServiceActive()
-                      ? 'bg-primary-light'
-                      : 'hover:bg-primary-light'
+                      ? 'bg-white/10'
+                      : 'hover:bg-white/10'
                   }
                 `}
                 aria-expanded={servicesOpen}
@@ -272,7 +272,7 @@ export default function Header() {
                     h-4
                     w-4
                     transition-transform
-                    duration-200
+                    duration-300
                     ${
                       servicesOpen
                         ? 'rotate-180'
@@ -302,7 +302,7 @@ export default function Header() {
                       right-5
                       h-0.5
                       rounded-full
-                      bg-secondary
+                      bg-gradient-to-r from-secondary to-accent
                     "
                   />
                 )}
@@ -318,13 +318,14 @@ export default function Header() {
                     absolute
                     left-0
                     top-full
-                    mt-1
+                    mt-2
                     w-56
                     overflow-hidden
                     rounded-xl
                     border
-                    border-primary-light
-                    bg-primary
+                    border-white/10
+                    bg-primary/95
+                    backdrop-blur-xl
                     py-2
                     shadow-custom-lg
                     animate-fade-in
@@ -348,12 +349,12 @@ export default function Header() {
                           font-medium
                           text-white
                           transition-all
-                          duration-200
+                          duration-300
 
                           ${
                             active
-                              ? 'bg-primary-light'
-                              : 'hover:bg-primary-light'
+                              ? 'bg-white/10'
+                              : 'hover:bg-white/10'
                           }
                         `}
                       >
@@ -374,17 +375,17 @@ export default function Header() {
                 href="/dashboard"
                 className="
                   ml-2
-                  rounded-md
-                  bg-secondary
+                  rounded-lg
+                  bg-gradient-to-r from-secondary to-accent
                   px-6
                   py-2.5
                   text-sm
                   font-semibold
                   text-white
                   transition-all
-                  duration-200
-                  hover:bg-secondary-dark
-                  hover:shadow-custom
+                  duration-300
+                  hover:shadow-glow
+                  hover-lift
                 "
               >
                 Dashboard
@@ -394,17 +395,17 @@ export default function Header() {
                 href="/login"
                 className="
                   ml-2
-                  rounded-md
-                  bg-secondary
+                  rounded-lg
+                  bg-gradient-to-r from-secondary to-accent
                   px-6
                   py-2.5
                   text-sm
                   font-semibold
                   text-white
                   transition-all
-                  duration-200
-                  hover:bg-secondary-dark
-                  hover:shadow-custom
+                  duration-300
+                  hover:shadow-glow
+                  hover-lift
                 "
               >
                 Login
@@ -478,8 +479,9 @@ export default function Header() {
         <div
           className="
             border-t
-            border-primary-light
-            bg-primary
+            border-white/10
+            bg-primary/95
+            backdrop-blur-xl
             md:hidden
             animate-fade-in
           "
@@ -506,24 +508,22 @@ export default function Header() {
                   onClick={closeMobileMenu}
                   className={`
                     w-full
-                    rounded-md
+                    rounded-lg
                     px-4
                     py-3
                     text-sm
                     font-medium
                     text-white
                     transition-all
-                    duration-200
+                    duration-300
 
                     ${
                       active
                         ? `
-                          border-l-2
-                          border-secondary
-                          bg-primary-light
+                          bg-white/10
                         `
                         : `
-                          hover:bg-primary-light
+                          hover:bg-white/10
                         `
                     }
                   `}
@@ -553,24 +553,22 @@ export default function Header() {
                   w-full
                   items-center
                   justify-between
-                  rounded-md
+                  rounded-lg
                   px-4
                   py-3
                   text-sm
                   font-medium
                   text-white
                   transition-all
-                  duration-200
+                  duration-300
 
                   ${
                     isServiceActive()
                       ? `
-                        border-l-2
-                        border-secondary
-                        bg-primary-light
+                        bg-white/10
                       `
                       : `
-                        hover:bg-primary-light
+                        hover:bg-white/10
                       `
                   }
                 `}
@@ -582,7 +580,7 @@ export default function Header() {
                     h-4
                     w-4
                     transition-transform
-                    duration-200
+                    duration-300
 
                     ${
                       mobileServicesOpen
@@ -667,8 +665,8 @@ export default function Header() {
                 className="
                   mt-3
                   w-full
-                  rounded-md
-                  bg-secondary
+                  rounded-lg
+                  bg-gradient-to-r from-secondary to-accent
                   px-4
                   py-3
                   text-center
@@ -676,8 +674,8 @@ export default function Header() {
                   font-semibold
                   text-white
                   transition-all
-                  duration-200
-                  hover:bg-secondary-dark
+                  duration-300
+                  hover:shadow-glow
                 "
               >
                 Dashboard
@@ -689,8 +687,8 @@ export default function Header() {
                 className="
                   mt-3
                   w-full
-                  rounded-md
-                  bg-secondary
+                  rounded-lg
+                  bg-gradient-to-r from-secondary to-accent
                   px-4
                   py-3
                   text-center
@@ -698,8 +696,8 @@ export default function Header() {
                   font-semibold
                   text-white
                   transition-all
-                  duration-200
-                  hover:bg-secondary-dark
+                  duration-300
+                  hover:shadow-glow
                 "
               >
                 Login
