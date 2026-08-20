@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('users')
-      .select('*, roles(name)')
+      .select('*, roles(name), projects(*)')
       .order('created_at', { ascending: false });
 
     if (search) {
